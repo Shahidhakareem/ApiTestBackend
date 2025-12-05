@@ -13,13 +13,35 @@ const dataPath = path.join(process.cwd(), "data.json");
 
 // READ JSON FILE
 function readData() {
-  if (!fs.existsSync(dataPath)) {
-    // Ensure history array exists in the default structure
-    return { requests: [], history: [] }; 
+  try {
+    // If file does not exist → create default file
+    if (!fs.existsSync(dataPath)) {
+      const defaultData = { requests: [], history: [] };
+      fs.writeFileSync(dataPath, JSON.stringify(defaultData, null, 2));
+      return defaultData;
+    }
+
+    // Read the file
+    const file = fs.readFileSync(dataPath, "utf-8");
+
+    // If file empty → fix automatically
+    if (!file.trim()) {
+      const defaultData = { requests: [], history: [] };
+      fs.writeFileSync(dataPath, JSON.stringify(defaultData, null, 2));
+      return defaultData;
+    }
+
+    return JSON.parse(file);
+  } catch (err) {
+    console.error("❌ JSON PARSE ERROR:", err.message);
+
+    // Repair corrupted JSON file
+    const defaultData = { requests: [], history: [] };
+    fs.writeFileSync(dataPath, JSON.stringify(defaultData, null, 2));
+    return defaultData;
   }
-  const file = fs.readFileSync(dataPath);
-  return JSON.parse(file);
 }
+
 
 // WRITE JSON FILE
 function writeData(data) {
